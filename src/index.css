@@ -1,5 +1,18 @@
+.square {
+  position: relative;
+  cursor: pointer;
+}
+
 .square:after {
   content: "";
   display: block;
   padding-bottom: 100%;
+}
+
+.xo-image {
+  position:absolute;
+  top:50%; 
+  left:50%;
+  transform: translate(-50%,-50%);
+ 
 }
