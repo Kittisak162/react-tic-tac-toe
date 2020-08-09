@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Modal, ModalBody } from 'react-bootstrap';
 import X from './assets/x.png';
 import O from './assets/o.png';
 
@@ -89,7 +88,7 @@ class Game extends Component {
 
   render() {
     const { size, boards, turnX, winner, endgame } = this.state;
-    const board = [];
+    const table = [];
     for (let i = 0; i < size; i++) {
       let row = [];
       for (let j = 0; j < size; j++) {
@@ -110,33 +109,38 @@ class Game extends Component {
           </div>
         );
       }
-      board.push(<div key={i} className="row">{row}</div>);
+      table.push(<div key={i} className="row">{row}</div>);
     }
 
     return (
       <div className="container mt-3">
-        <Modal show={endgame} centered onHide={() => this.onHideModalShowWinner()}>
-          <ModalBody>
-            <div>
-                <h1 className="display-1">{winner}</h1>
-                <h2>คือผู้ชนะ</h2>
-            </div>
-          </ModalBody>
-        </Modal>
-        <div>
-          <h2 className="text-center">เลือกขนาด</h2>
-          <select className="form-control" value={size} onChange={this.handleChangeSize}>
+        <div className="form-group form-inline justify-content-center">
+          <label className="mr-3">เลือกขนาด</label>
+          <select className="custom-select custom-select-sm" value={size} onChange={this.handleChangeSize}>
             {
               Array.from(Array(14), (_, i) => i + 3).map(item => {
                 return <option value={item} key={item}>{item + ' x ' + item}</option>
               })
             }
           </select>
-          <h5 className="text-center my-3">{endgame ? 'จบเกมส์' : (`ถึงตา ${turnX ? 'X' : 'O'}`)}</h5>
-          <div className="container my-3">{board}</div>
-          <div className="d-flex justify-content-center">
-            <button type="button" class="btn btn-primary my-2" onClick={() => this.handleClickRestartGame()}>เริ่มเกมส์ใหม่</button>
+        </div>
+        <div className="row align-items-center no-gutters">
+          <div class="col-lg-4 offset-lg-4 col-md-6 offset-md-3">
+            <h3 className="border-4 border-info text-center p-2 mb-0">{endgame ? 'จบเกมส์' : (`ถึงตา ${turnX ? 'X' : 'O'}`)}</h3>
           </div>
+          { boards.some(item => item.some(item => item !== 0)) && (
+            <div className="col-lg-4 col-md-3 d-flex justify-content-center justify-content-lg-end justify-content-md-end justify-content-sm-center mt-2 mt-sm-2 mt-md-0 mt-lg-0">
+              <button type="button" className="btn btn-success text-right" onClick={() => this.handleClickRestartGame()}>เริ่มเกมส์ใหม่</button>
+            </div>
+          ) }
+        </div>
+        { endgame && (
+          <div class="alert alert-info mt-3" role="alert">
+            <span className="alert-link">{winner !== 'Draw' ? winner : 'เสมอ'}</span> {winner !== 'Draw' ? ' คือผู้ชนะ' : ''}
+          </div>
+        ) }
+        <div className="container card bg-info my-3">
+          {table}
         </div>
       </div>
     );

@@ -1,3 +1,7 @@
+.border-4 {
+  border: 4px solid #dee2e6;
+}
+
 .square {
   position: relative;
   cursor: pointer;
@@ -15,4 +19,15 @@
   left:50%;
   transform: translate(-50%,-50%);
  
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
