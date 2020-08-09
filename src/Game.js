@@ -12,7 +12,8 @@ class Game extends Component {
     ],
     turnX: true,
     winner: null,
-    endgame: false
+    endgame: false,
+    positionsWin: []
   }
 
   handleChangeSize = event => {
@@ -22,7 +23,8 @@ class Game extends Component {
       boards: Array(size).fill().map(() => Array(size).fill(0)),
       turnX: true,
       winner: null,
-      endgame: false
+      endgame: false,
+      positionsWin: []
     });
   }
 
@@ -42,7 +44,8 @@ class Game extends Component {
       boards: Array(size).fill().map(() => Array(size).fill(0)),
       turnX: true,
       winner: null,
-      endgame: false
+      endgame: false,
+      positionsWin: []
     });
   }
 
@@ -52,26 +55,42 @@ class Game extends Component {
       boards: Array(size).fill().map(() => Array(size).fill(0)),
       turnX: true,
       winner: null,
-      endgame: false
+      endgame: false,
+      positionsWin: []
     });
   }
 
   checkWinner = () => {
     const { size, boards } = this.state;
-    let { winner, endgame } = this.state;
-    let scores = [];
+    let { winner, endgame, positionsWin } = this.state;
+    let score;
     for (let i = 0; i < size; i++) {
-      scores.push(boards[i].reduce((a, b) => a + b, 0));
-      scores.push(boards.map(item => item[i]).reduce((a, b) => a + b, 0));
+      score = boards[i].reduce((a, b) => a + b, 0);
+      if (score === size || score === -size) {
+        positionsWin = Array.from(Array(size).keys()).map(item => ({ i, item }));
+        endgame = true;
+        break;
+      }
+      score = boards.map(item => item[i]).reduce((a, b) => a + b, 0);
+      if (score === size || score === -size) {
+        positionsWin = Array.from(Array(size).keys()).map(item => ({ i: item, j: i }));
+        endgame = true;
+        break;
+      }
     }
-    scores.push(boards.map((item, index) => item[index]).reduce((a, b) => a + b, 0));
-    scores.push(boards.map((item, index) => item[(size - 1) - index]).reduce((a, b) => a + b, 0));
-    if (scores.find(item => item === size)) {
-      winner = 'X';
-      endgame = true;
-    } else if (scores.find(item => item === -size)) {
-      winner = 'O';
-      endgame = true;
+    if (!endgame) {
+      score = boards.map((item, index) => item[index]).reduce((a, b) => a + b, 0);
+      if (score === size || score === -size) {
+        positionsWin = Array.from(Array(size).keys()).map(item => ({ i: item, j: item }));
+        endgame = true;
+      }
+    }
+    if (!endgame) {
+      score = boards.map((item, index) => item[(size - 1) - index]).reduce((a, b) => a + b, 0);
+      if (score === size || score === -size) {
+        positionsWin = Array.from(Array(size).keys()).map(item => ({ i: item, j: (size - 1) - item }));
+        endgame = true;
+      }
     }
     if (!endgame) {
       const isFullBoard = !boards.some(item => item.some(item => item === 0));
@@ -80,14 +99,20 @@ class Game extends Component {
         endgame = true;
       }
     }
+    if (endgame && score === size) 
+      winner = 'X';
+    else if (endgame && score === -size)
+      winner = 'O';
+  
     this.setState({
       winner,
-      endgame
+      endgame,
+      positionsWin
     });
   }
 
   render() {
-    const { size, boards, turnX, winner, endgame } = this.state;
+    const { size, boards, turnX, winner, endgame, positionsWin } = this.state;
     const table = [];
     for (let i = 0; i < size; i++) {
       let row = [];
@@ -104,7 +129,7 @@ class Game extends Component {
         row.push(
           <div key={i + '' + j} className={className} style={{ width: `${100/size}%`, height: `${100/size}%` }} onClick={() => !endgame && boards[i][j] === 0 ? this.handleClickBoard(i, j) : null}>
             { boards[i][j] !== 0 && (
-              <img className="w-50 xo-image" src={boards[i][j] === 1 ? X : O} alt="Logo" />
+              <img className={positionsWin.some(item => item.i === i && item.j === j) ? 'w-50 xo-image xo-image-blink' : 'w-50 xo-image' } src={boards[i][j] === 1 ? X : O} alt="Logo" />
             ) }
           </div>
         );
@@ -125,23 +150,31 @@ class Game extends Component {
           </select>
         </div>
         <div className="row align-items-center no-gutters">
-          <div class="col-lg-4 offset-lg-4 col-md-6 offset-md-3">
-            <h3 className="border-4 border-info text-center p-2 mb-0">{endgame ? 'จบเกมส์' : (`ถึงตา ${turnX ? 'X' : 'O'}`)}</h3>
+          <div className="col-lg-4 offset-lg-4 col-md-6 offset-md-3">
+            <h3 className="border-4 border-info text-center p-2 mb-0">{endgame ? 'จบเกมส์' : (`รอบผู้เล่น ${turnX ? 'X' : 'O'}`)}</h3>
           </div>
-          { boards.some(item => item.some(item => item !== 0)) && (
-            <div className="col-lg-4 col-md-3 d-flex justify-content-center justify-content-lg-end justify-content-md-end justify-content-sm-center mt-2 mt-sm-2 mt-md-0 mt-lg-0">
-              <button type="button" className="btn btn-success text-right" onClick={() => this.handleClickRestartGame()}>เริ่มเกมส์ใหม่</button>
-            </div>
-          ) }
         </div>
         { endgame && (
-          <div class="alert alert-info mt-3" role="alert">
-            <span className="alert-link">{winner !== 'Draw' ? winner : 'เสมอ'}</span> {winner !== 'Draw' ? ' คือผู้ชนะ' : ''}
+          <div className="row no-gutters mt-3">
+            <div className="col-lg-4 offset-lg-4 col-md-6 offset-md-3">
+              <div className="alert alert-info mb-0" role="alert">
+                <span className="alert-link">{winner !== 'Draw' ? winner : 'เสมอ'}</span> {winner !== 'Draw' ? ' คือผู้ชนะ' : ''}
+              </div>
+            </div>
           </div>
         ) }
-        <div className="container card bg-info my-3">
-          {table}
+        <div className="container my-3">
+          <div className="row">
+            <div className="bg-info col-lg-4 offset-lg-4 col-md-6 offset-md-3">
+              {table}
+            </div>
+          </div>
         </div>
+        { boards.some(item => item.some(item => item !== 0)) && (
+          <div className="text-center pb-3">
+            <button type="button" className="btn btn-success text-center" onClick={() => this.handleClickRestartGame()}>เริ่มเกมส์ใหม่</button>
+          </div>
+        ) }
       </div>
     );
   }
